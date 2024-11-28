@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 3.26)
-project(Assignment1FileManagement C)
+project(Assignment1FileManagement CXX)
 
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 
 include_directories(.)
 
 add_executable(Assignment1FileManagement
         Appointment.h
-        Doctor.h)
+        Doctor.h
+        DoctorPrimaryIndex.h
+        main.cpp
+)
