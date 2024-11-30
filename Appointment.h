@@ -8,6 +8,9 @@
 #include <fstream>
 #include <map>
 #include <cstring> // For strcpy and strcmp
+#include <sstream>
+#include "vector"
+
 using namespace std;
 
 // Appointment Class
@@ -16,6 +19,7 @@ private:
     char appointmentID[16];  // 15 characters + 1 null terminator
     char appointmentDate[31]; // 30 characters + 1 null terminator
     char doctorID[16];       // 15 characters + 1 null terminator
+    vector<streampos>availlist;
 
 public:
     // Constructor
@@ -24,7 +28,8 @@ public:
         memset(appointmentDate, 0, sizeof(appointmentDate));
         memset(doctorID, 0, sizeof(doctorID));
     }
-
+    void insert(const string &fileName);
+    void deleteRecord(const string&fileName , const string& appointmentid);
     // Setters
     void setAppointmentID(const char* id) {
         strncpy(appointmentID, id, sizeof(appointmentID) - 1);
@@ -67,5 +72,61 @@ public:
              << "Doctor ID: " << doctorID << endl;
     }
 };
+void Appointment::insert(const std::string &fileName) {
+    stringstream record;
+    record<<appointmentID<<"|"<<appointmentDate<<"|"<<doctorID;
+    string finialrecord = record.str();
+    int recordlenght = finialrecord.length();
+    ofstream file;
+    file.open(fileName,ios::app);
+    file<<recordlenght<<"|"<<finialrecord<<"\n";
+    file.close();
+}
+//delete in doctor data file
+void Appointment::deleteRecord(const std::string &fileName, const std::string &appointmentid) {
+    fstream file(fileName, ios::in | ios::out);
 
+    if (!file.is_open()) {
+        cerr << "Error: Could not open file " << fileName << endl;
+        return;
+    }
+
+    string line;
+    bool found = false;
+    streampos pos;
+    vector<string> lines;
+
+    while (getline(file, line)) {
+        pos = file.tellg();
+        if (line.length() < 7) continue;
+
+        if (line.substr(3, 4) == appointmentid) {
+            found = true;
+            line = '*'+line;
+            availlist.push_back(pos);
+        }
+        lines.push_back(line);
+    }
+
+    if (!found) {
+        cerr << "Error: appointment ID " << appointmentid << " not found!" << endl;
+        file.close();
+        return;
+    }
+
+    file.close();
+    ofstream outFile(fileName, ios::trunc);  // Open file in truncate mode (clears the file)
+
+    if (!outFile.is_open()) {
+        cerr << "Error: Could not open file " << fileName << " for writing!" << endl;
+        return;
+    }
+
+    for (const auto &line : lines) {
+        outFile << line << endl;
+    }
+
+    outFile.close();
+    cout << "Appointment record with ID " << appointmentid << " deleted successfully!" << endl;
+}
 #endif //ASSIGNMENT_APPOINTMENT_H
