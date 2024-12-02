@@ -1,208 +1,233 @@
 // created By Dina
-
 #ifndef APPOINTMENT_SECONDARY_INDEX_H
 #define APPOINTMENT_SECONDARY_INDEX_H
 
 #include <iostream>
 #include <fstream>
 #include <map>
-#include <vector>
 #include <string>
+#include <vector>
 #include <algorithm>
-#include <sstream>
+#include <iterator>
+
 using namespace std;
 
+// Linked List node for each entry in the secondary index
+struct AppointmentNode
+{
+    string appointmentID;
+    string doctorID;
+    AppointmentNode *next;
+
+    AppointmentNode(string appID, string docID) : appointmentID(appID), doctorID(docID), next(nullptr) {}
+};
+
+// Class for managing the Secondary Index for Appointment
 class AppointmentSecondaryIndex
 {
 private:
-    string filename;
-    map<string, vector<string>> secondaryIndex; // Maps Doctor ID -> List of Appointment IDs
-    vector<streampos> availList;                // Stores positions of deleted records
+    string indexFilename;                          // File to store the secondary index
+    map<string, AppointmentNode *> secondaryIndex; // Maps Doctor ID -> Linked List of Appointments
 
 public:
-    AppointmentSecondaryIndex(const string &file) : filename(file) {}
+    AppointmentSecondaryIndex(const string &indexFile) : indexFilename(indexFile) {}
 
-    // Build secondary index and AVAIL LIST
-    void buildSecondaryIndex()
+    // Build the secondary index from the index file
+    void buildSecondaryIndex();
+
+    // Add an appointment to the secondary index
+    void addAppointmentToIndex(const string &doctorID, const string &appointmentID);
+
+    // Delete an appointment from the secondary index
+    void deleteAppointmentFromIndex(const string &doctorID, const string &appointmentID);
+
+    // Update Doctor ID for a specific appointment
+    void updateDoctorIDForAppointment(const string &appointmentID, const string &oldDoctorID, const string &newDoctorID);
+
+    // Binary search to find appointments by doctor ID
+    vector<string> binarySearchAppointments(const string &doctorID) const;
+
+    // Search for appointments by Doctor ID in the secondary index and return positions from the primary index
+    vector<streampos> searchAppointmentsByDoctor(const string &doctorID, const DoctorPrimaryIndex &primaryIndex) const;
+
+    // Display the secondary index
+    void displayIndexes() const;
+};
+
+// Build the secondary index from the index file
+void AppointmentSecondaryIndex::buildSecondaryIndex()
+{
+    secondaryIndex.clear();
+
+    ifstream indexFile(indexFilename);
+    if (!indexFile.is_open())
     {
-        secondaryIndex.clear();
-        availList.clear();
+        cerr << "Error: Could not open index file " << indexFilename << endl;
+        return;
+    }
 
-        fstream file(filename, ios::in);
+    string doctorID, appointmentID;
+    while (indexFile >> doctorID >> appointmentID)
+    {
+        addAppointmentToIndex(doctorID, appointmentID);
+    }
+    indexFile.close();
 
-        if (!file.is_open())
+    cout << "Secondary index built successfully!" << endl;
+}
+
+// Add an appointment to the secondary index
+void AppointmentSecondaryIndex::addAppointmentToIndex(const string &doctorID, const string &appointmentID)
+{
+    AppointmentNode *newNode = new AppointmentNode(appointmentID, doctorID);
+    if (secondaryIndex.find(doctorID) == secondaryIndex.end())
+    {
+        secondaryIndex[doctorID] = newNode;
+    }
+    else
+    {
+        AppointmentNode *current = secondaryIndex[doctorID];
+        while (current->next != nullptr)
         {
-            cerr << "Error: Could not open file " << filename << endl;
-            return;
+            current = current->next;
         }
+        current->next = newNode;
+    }
 
-        string line;
-        streampos pos = file.tellg();
+    // Save to file (this example appends at the end of the file)
+    ofstream secondaryIndexFile(indexFilename, ios::app);
+    if (!secondaryIndexFile.is_open())
+    {
+        cerr << "Error: Could not open index file for writing!" << endl;
+        return;
+    }
 
-        while (getline(file, line))
+    secondaryIndexFile << doctorID << " " << appointmentID << endl;
+    secondaryIndexFile.close();
+
+    cout << "Appointment ID " << appointmentID << " added for Doctor ID " << doctorID << "." << endl;
+}
+// Delete an appointment from the secondary index
+void AppointmentSecondaryIndex::deleteAppointmentFromIndex(const string &doctorID, const string &appointmentID)
+{
+    auto it = secondaryIndex.find(doctorID);
+    if (it == secondaryIndex.end())
+    {
+        cerr << "Error: Doctor ID " << doctorID << " not found in the index!" << endl;
+        return;
+    }
+
+    AppointmentNode *current = it->second;
+    AppointmentNode *prev = nullptr;
+    while (current != nullptr)
+    {
+        if (current->appointmentID == appointmentID)
         {
-            if (line.empty())
+            if (prev == nullptr)
             {
-                pos = file.tellg();
-                continue;
-            }
-
-            if (line[0] == '*')
-            {
-                // Deleted record, add position to AVAIL LIST
-                availList.push_back(pos);
+                secondaryIndex[doctorID] = current->next;
             }
             else
             {
-                // Extract Doctor ID and Appointment ID, add to secondary index
-                istringstream iss(line);
-                string appointmentID, appointmentDate, doctorID;
-                getline(iss, appointmentID, '|');
-                getline(iss, appointmentDate, '|');
-                getline(iss, doctorID, '|');
-
-                secondaryIndex[doctorID].push_back(appointmentID);
+                prev->next = current->next;
             }
+            delete current;
 
-            pos = file.tellg();
-        }
-
-        file.close();
-    }
-
-    // Add a new appointment record
-    void addAppointment(const string &appointmentID, const string &appointmentDate, const string &doctorID)
-    {
-        // Check if Appointment ID already exists in any doctor's appointments
-        for (const auto &entry : secondaryIndex)
-        {
-            if (find(entry.second.begin(), entry.second.end(), appointmentID) != entry.second.end())
+            // Rebuild the file by clearing it and rewriting the index
+            ofstream indexFile(indexFilename, ios::trunc);
+            if (!indexFile.is_open())
             {
-                cerr << "Error: Appointment ID " << appointmentID << " already exists!" << endl;
+                cerr << "Error: Could not open index file for rewriting!" << endl;
                 return;
             }
-        }
-
-        fstream file(filename, ios::in | ios::out | ios::app);
-
-        if (!file.is_open())
-        {
-            cerr << "Error: Could not open file " << filename << endl;
-            return;
-        }
-
-        streampos pos;
-
-        if (!availList.empty())
-        {
-            // Use position from AVAIL LIST
-            pos = availList.back();
-            availList.pop_back();
-            file.seekp(pos);
-        }
-        else
-        {
-            // Append to end of file
-            file.seekp(0, ios::end);
-            pos = file.tellp();
-        }
-
-        // Write the record
-        file << appointmentID << "|" << appointmentDate << "|" << doctorID << endl;
-
-        // Update the secondary index
-        secondaryIndex[doctorID].push_back(appointmentID);
-
-        file.close();
-        cout << "Appointment record added successfully!" << endl;
-    }
-
-    // Delete an appointment record
-    void deleteAppointment(const string &appointmentID)
-    {
-        bool found = false;
-
-        fstream file(filename, ios::in | ios::out);
-
-        if (!file.is_open())
-        {
-            cerr << "Error: Could not open file " << filename << endl;
-            return;
-        }
-
-        string line;
-        streampos pos = file.tellg();
-
-        while (getline(file, line))
-        {
-            if (line.substr(0, line.find('|')) == appointmentID)
+            for (const auto &entry : secondaryIndex)
             {
-                found = true;
-
-                // Mark the record as deleted
-                file.seekp(pos);
-                file.put('*'); // Overwrite the first character with '*'
-
-                // Remove from secondary index
-                for (auto &entry : secondaryIndex)
+                current = entry.second;
+                while (current != nullptr)
                 {
-                    auto &appointments = entry.second;
-                    appointments.erase(remove(appointments.begin(), appointments.end(), appointmentID), appointments.end());
+                    indexFile << entry.first << " " << current->appointmentID << endl;
+                    current = current->next;
                 }
-
-                // Add position to AVAIL LIST
-                availList.push_back(pos);
-                break;
             }
-
-            pos = file.tellg();
-        }
-
-        file.close();
-
-        if (found)
-            cout << "Appointment record deleted successfully!" << endl;
-        else
-            cerr << "Error: Appointment ID " << appointmentID << " not found!" << endl;
-    }
-
-    // Search appointments by Doctor ID
-    void searchByDoctorID(const string &doctorID)
-    {
-        auto it = secondaryIndex.find(doctorID);
-        if (it == secondaryIndex.end())
-        {
-            cout << "No appointments found for Doctor ID " << doctorID << endl;
+            indexFile.close();
+            cout << "Appointment ID " << appointmentID << " deleted for Doctor ID " << doctorID << "." << endl;
             return;
         }
-
-        cout << "Appointments for Doctor ID " << doctorID << ":" << endl;
-        for (const string &appointmentID : it->second)
-        {
-            cout << "- " << appointmentID << endl;
-        }
+        prev = current;
+        current = current->next;
     }
 
-    // Display the secondary index and AVAIL LIST
-    void displayIndexes() const
+    cerr << "Error: Appointment ID " << appointmentID << " not found for Doctor ID " << doctorID << "!" << endl;
+}
+
+// Update Doctor ID for a specific appointment
+void AppointmentSecondaryIndex::updateDoctorIDForAppointment(const string &appointmentID, const string &oldDoctorID, const string &newDoctorID)
+{
+    deleteAppointmentFromIndex(oldDoctorID, appointmentID);
+    addAppointmentToIndex(newDoctorID, appointmentID);
+    cout << "Appointment ID " << appointmentID << " updated from Doctor ID " << oldDoctorID
+         << " to Doctor ID " << newDoctorID << "." << endl;
+}
+
+// Binary search to find appointments by doctor ID in the secondary index
+vector<string> AppointmentSecondaryIndex::binarySearchAppointments(const string &doctorID) const
+{
+    vector<string> appointments;
+
+    auto it = secondaryIndex.find(doctorID);
+    if (it != secondaryIndex.end())
     {
-        cout << "Secondary Index (Doctor ID -> Appointment IDs):" << endl;
-        for (const auto &entry : secondaryIndex)
+        AppointmentNode *current = it->second;
+        while (current != nullptr)
         {
-            cout << entry.first << ": ";
-            for (const string &appointmentID : entry.second)
-            {
-                cout << appointmentID << " ";
-            }
-            cout << endl;
-        }
-
-        cout << "\nAVAIL LIST:" << endl;
-        for (const auto &pos : availList)
-        {
-            cout << pos << endl;
+            appointments.push_back(current->appointmentID);
+            current = current->next;
         }
     }
-};
+    return appointments;
+}
+
+// Search for appointments by Doctor ID in the secondary index and return positions from the primary index
+vector<streampos> AppointmentSecondaryIndex::searchAppointmentsByDoctor(const string &doctorID, const DoctorPrimaryIndex &primaryIndex) const
+{
+    vector<streampos> primaryPositions;
+
+    // Perform binary search on secondary index
+    vector<string> appointmentIDs = binarySearchAppointments(doctorID);
+
+    if (appointmentIDs.empty())
+    {
+        cerr << "No appointments found for Doctor ID " << doctorID << endl;
+        return primaryPositions;
+    }
+
+    // For each appointment ID, get the primary key's position from the primary index
+    for (const string &appointmentID : appointmentIDs)
+    {
+        streampos pos = primaryIndex.searchDoctorInIndex(doctorID);
+        if (pos != -1)
+        {
+            primaryPositions.push_back(pos);
+        }
+    }
+
+    return primaryPositions;
+}
+
+// Display the secondary index
+void AppointmentSecondaryIndex::displayIndexes() const
+{
+    cout << "Secondary Index:" << endl;
+    for (const auto &entry : secondaryIndex)
+    {
+        cout << "Doctor ID: " << entry.first << " -> [ ";
+        AppointmentNode *current = entry.second;
+        while (current != nullptr)
+        {
+            cout << current->appointmentID << " ";
+            current = current->next;
+        }
+        cout << "]" << endl;
+    }
 
 #endif
