@@ -4,39 +4,39 @@
 using namespace std;
 
 
+#include "DoctorPrimaryIndex.h"
+
 int main() {
-    DoctorPrimaryIndex primaryIndex("Doctors.txt");
+    // Initialize the index with a filename for storing the index data
+    DoctorPrimaryIndex doctorIndex("doctor_primary_index.txt");
 
-    // Build primary index
-    primaryIndex.buildPrimaryIndex();
-    primaryIndex.displayIndexes();
+    // Build the primary index from the file (if it exists)
+    doctorIndex.buildPrimaryIndex();
 
-//    // Add doctors
-//    primaryIndex.addDoctor("DOC001", "John Smith", "123 Elm St.");
-//    primaryIndex.addDoctor("DOC002", "Jane Doe", "456 Oak Rd.");
-//    primaryIndex.addDoctor("DOC003", "Alice Jones", "789 Pine St.");
-//
-//    // Display indexes
-//    primaryIndex.displayIndexes();
-//
-//    // Search for a doctor
-//    cout << "\nSearching for Doctor ID 'DOC002':" << endl;
-//    primaryIndex.searchByDoctorID("DOC002");
-//
-//    // Update a doctor
-//    primaryIndex.updateDoctor("DOC002", "Jane Roe", "890 Maple Ave.");
-//
-//    // Search again to see the update
-//    cout << "\nAfter Update - Searching for Doctor ID 'DOC002':" << endl;
-//    primaryIndex.searchByDoctorID("DOC002");
-//
-//    // Delete a doctor
-//    primaryIndex.deleteDoctor("DOC003");
-//
-//    // Try to search for the deleted doctor
-//    cout << "\nAfter Delete - Searching for Doctor ID 'DOC003':" << endl;
-//    primaryIndex.searchByDoctorID("DOC003");
-//
+    // Display the current state of the index and the AVAIL LIST
+    doctorIndex.displayIndexes();
+
+    // Add some doctors to the index
+    doctorIndex.addDoctorToIndex("D001", 100);
+    doctorIndex.addDoctorToIndex("D002", 200);
+    doctorIndex.addDoctorToIndex("D003", 300);
+
+    // Display the updated index
+    cout << "\nAfter Adding Doctors:" << endl;
+    doctorIndex.displayIndexes();
+
+    // Delete a doctor from the index
+    doctorIndex.deleteDoctorFromIndex("D002");
+
+    // Display the index after deletion
+    cout << "\nAfter Deleting Doctor D002:" << endl;
+    doctorIndex.displayIndexes();
+
+    // Try to add a doctor with an existing ID
+    doctorIndex.addDoctorToIndex("D001", 400);
+
+    // Try to delete a non-existent doctor
+    doctorIndex.deleteDoctorFromIndex("D999");
 
     return 0;
 }
