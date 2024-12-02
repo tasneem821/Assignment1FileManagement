@@ -16,16 +16,16 @@ using namespace std;
 
 class Doctor{
 public:
-char DoctorID[15];
-char DoctorName[30];
-char Address[30];
-vector<streampos>availlist;
+    char DoctorID[15];
+    char DoctorName[30];
+    char Address[30];
+    vector<streampos>availlist;
 public:
     Doctor(){
 
-            memset(DoctorID, 0, sizeof(DoctorID));
-            memset(DoctorName, 0, sizeof(DoctorName));
-            memset(Address, 0, sizeof(Address));
+        memset(DoctorID, 0, sizeof(DoctorID));
+        memset(DoctorName, 0, sizeof(DoctorName));
+        memset(Address, 0, sizeof(Address));
 
     }
 
@@ -46,18 +46,20 @@ public:
 
     void insert(const string &fileName);
     void deleteRecord(const string&fileName , const string& Doctorid);
+void updateDoctorName(const string&fileName, const string&doctorId, const char *doctorName);
+    void updateDoctorAddress(const string&fileName,const string&doctorId,const string&doctorAddress);
 
 };
 //insert in doctor data file
 void Doctor::insert(const std::string &fileName) {
-stringstream record;
-record<<DoctorID<<"|"<<DoctorName<<"|"<<Address;
-string finialrecord = record.str();
-int recordlenght = finialrecord.length();
-ofstream file;
-file.open(fileName,ios::app);
-file<<recordlenght<<"|"<<finialrecord<<"\n";
-file.close();
+    stringstream record;
+    record<<DoctorID<<"|"<<DoctorName<<"|"<<Address;
+    string finialrecord = record.str();
+    int recordlenght = finialrecord.length();
+    ofstream file;
+    file.open(fileName,ios::app);
+    file<<recordlenght<<"|"<<finialrecord<<"\n";
+    file.close();
 }
 //delete in doctor data file
 void Doctor::deleteRecord(const std::string &fileName, const std::string &Doctorid) {
@@ -70,17 +72,17 @@ void Doctor::deleteRecord(const std::string &fileName, const std::string &Doctor
 
     string line;
     bool found = false;
-    streampos pos;         
-    vector<string> lines;  
+    streampos pos;
+    vector<string> lines;
 
     while (getline(file, line)) {
-        pos = file.tellg();  
+        pos = file.tellg();
         if (line.substr(3, 4) == Doctorid) {
-            found = true;  
-            line = '*'+line;  
-            availlist.push_back(pos);  
+            found = true;
+            line = '*'+line;
+            availlist.push_back(pos);
         }
-        lines.push_back(line);  
+        lines.push_back(line);
     }
 
     if (!found) {
@@ -115,6 +117,97 @@ const char *Doctor::getDoctorName() const {
 const char *Doctor::getAddress() const {
     return Address;
 }
+
+void Doctor::updateDoctorName(const string&fileName, const std::string &doctorId, const char *doctorName) {
+    fstream file(fileName,ios::in|ios::out);
+    if(!file.is_open()){
+        cerr<<"Error canot open file "+fileName<<"\n";
+
+    }
+    string line;
+    bool found = false;
+    vector<string>lines;
+    while(getline(file,line)){
+  stringstream ss(line);
+  string lenght,doctorid,name,address;
+        getline(ss,lenght,'|');
+        getline(ss,doctorid,'|');
+        getline(ss,name,'|');
+        getline(ss,address);
+        if(doctorid==doctorId){
+            found = true;
+            stringstream  record;
+            string updatedrecord = doctorid +"|"+doctorName+"|"+address;
+            int updatedlenght = updatedrecord.length();
+            stringstream updatedfile;
+            updatedfile<<updatedlenght<<"|"<<updatedrecord;
+        line =  updatedfile.str();
+
+        }
+
+        lines.push_back(line);
+    }
+file.close();
+    ofstream outFile(fileName,ios::trunc);
+    for(const auto &line:lines){
+        outFile<<line<<"\n";
+    }
+
+    outFile.close();
+    cout << "Doctor record with ID " << doctorId << " updated successfully!" << endl;
+
+
+}
+
+void Doctor::updateDoctorAddress(const std::string &fileName, const std::string &doctorId,
+                                 const std::string &doctorAddress)  {
+    fstream file(fileName,ios::in|ios::out);
+    if(!file.is_open()){
+        cerr<<"Error canot open file "+fileName<<"\n";
+
+    }
+    string line;
+    bool found = false;
+    vector<string>lines;
+    while(getline(file,line)){
+        stringstream ss(line);
+        string lenght,doctorid,name,address;
+        getline(ss,lenght,'|');
+        getline(ss,doctorid,'|');
+        getline(ss,name,'|');
+        getline(ss,address);
+        if(doctorid==doctorId){
+            found = true;
+            stringstream  record;
+            string updatedrecord = doctorid +"|"+name+"|"+doctorAddress;
+            int updatedlenght = updatedrecord.length();
+            stringstream updatedfile;
+            updatedfile<<updatedlenght<<"|"<<updatedrecord;
+            line =  updatedfile.str();
+
+        }
+
+        lines.push_back(line);
+    }
+    file.close();
+    ofstream outFile(fileName,ios::trunc);
+    for(const auto &line:lines){
+        outFile<<line<<"\n";
+    }
+
+    outFile.close();
+    cout << "Doctor record with ID " << doctorId << " updated successfully!" << endl;
+
+
+}
+
+
+
+
+
+
+
+
 
 
 class SecondaryIdxDoctorName {
