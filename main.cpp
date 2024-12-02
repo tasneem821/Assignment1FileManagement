@@ -1,42 +1,60 @@
 
 #include <bits/stdc++.h>
+#include "SecondaryIndexForAppointment.h"
 #include "DoctorPrimaryIndex.h"
 using namespace std;
 
-
-#include "DoctorPrimaryIndex.h"
-
 int main() {
-    // Initialize the index with a filename for storing the index data
-    DoctorPrimaryIndex doctorIndex("doctor_primary_index.txt");
+    fstream ssecondaryIndexFile;
+    ssecondaryIndexFile.open("appointment_secondary_index.txt");
+    // Create a secondary index instance
+    string secondaryIndexFile = "appointment_secondary_index.txt";
+    AppointmentSecondaryIndex secondaryIndex(secondaryIndexFile);
 
-    // Build the primary index from the file (if it exists)
-    doctorIndex.buildPrimaryIndex();
+    // Rebuild the index from the file (if it exists)
+    secondaryIndex.buildSecondaryIndex();
 
-    // Display the current state of the index and the AVAIL LIST
-    doctorIndex.displayIndexes();
+    // Test adding appointments
+    secondaryIndex.addAppointmentToIndex("D001", "A001");
+    secondaryIndex.addAppointmentToIndex("D001", "A002");
+    secondaryIndex.addAppointmentToIndex("D002", "A003");
+    secondaryIndex.addAppointmentToIndex("D003", "A004");
 
-    // Add some doctors to the index
-    doctorIndex.addDoctorToIndex("D001", 100);
-    doctorIndex.addDoctorToIndex("D002", 200);
-    doctorIndex.addDoctorToIndex("D003", 300);
+    // Display the index
+    cout << "\nIndex after adding appointments:" << endl;
+    secondaryIndex.displayIndexes();
 
-    // Display the updated index
-    cout << "\nAfter Adding Doctors:" << endl;
-    doctorIndex.displayIndexes();
+    // Test deleting an appointment
+    secondaryIndex.deleteAppointmentFromIndex("D001", "A001");
+    cout << "\nIndex after deleting A001 for Doctor D001:" << endl;
+    secondaryIndex.displayIndexes();
 
-    // Delete a doctor from the index
-    doctorIndex.deleteDoctorFromIndex("D002");
+    // Test updating a doctor's ID for an appointment
+    secondaryIndex.updateDoctorIDForAppointment("A002", "D001", "D004");
+    cout << "\nIndex after updating doctor ID for A002 from D001 to D004:" << endl;
+    secondaryIndex.displayIndexes();
 
-    // Display the index after deletion
-    cout << "\nAfter Deleting Doctor D002:" << endl;
-    doctorIndex.displayIndexes();
+    // Test searching for appointments for a doctor
+    cout << "\nAppointments for Doctor D004:" << endl;
+    vector<string> appointments = secondaryIndex.binarySearchAppointments("D004");
+    for (const string &appointmentID : appointments) {
+        cout << appointmentID << " ";
+    }
+    cout << endl;
 
-    // Try to add a doctor with an existing ID
-    doctorIndex.addDoctorToIndex("D001", 400);
+    // Simulate primary index for testing cross-search
+    DoctorPrimaryIndex primaryIndex("doctor_primary_index.txt");
+    primaryIndex.addDoctorToIndex("D001", 0);
+    primaryIndex.addDoctorToIndex("D002", 100);
+    primaryIndex.addDoctorToIndex("D003", 200);
+    primaryIndex.addDoctorToIndex("D004", 300);
 
-    // Try to delete a non-existent doctor
-    doctorIndex.deleteDoctorFromIndex("D999");
+    cout << "\nSearching primary positions for appointments of Doctor D004:" << endl;
+    vector<streampos> positions = secondaryIndex.searchAppointmentsByDoctor("D004", primaryIndex);
+    for (streampos pos : positions) {
+        cout << pos << " ";
+    }
+    cout << endl;
 
     return 0;
 }

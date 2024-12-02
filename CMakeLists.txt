@@ -10,4 +10,5 @@ add_executable(Assignment1FileManagement
         Doctor.h
         DoctorPrimaryIndex.h
         main.cpp
+        SecondaryIndexForAppointment.h
 )

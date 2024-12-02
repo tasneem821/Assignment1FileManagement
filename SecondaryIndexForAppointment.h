@@ -9,6 +9,7 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include "DoctorPrimaryIndex.h"
 
 using namespace std;
 
@@ -215,19 +216,16 @@ vector<streampos> AppointmentSecondaryIndex::searchAppointmentsByDoctor(const st
 }
 
 // Display the secondary index
-void AppointmentSecondaryIndex::displayIndexes() const
-{
+void AppointmentSecondaryIndex::displayIndexes() const {
     cout << "Secondary Index:" << endl;
-    for (const auto &entry : secondaryIndex)
-    {
+    for (const auto &entry: secondaryIndex) {
         cout << "Doctor ID: " << entry.first << " -> [ ";
         AppointmentNode *current = entry.second;
-        while (current != nullptr)
-        {
+        while (current != nullptr) {
             cout << current->appointmentID << " ";
             current = current->next;
         }
         cout << "]" << endl;
     }
-
+}
 #endif

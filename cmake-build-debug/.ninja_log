@@ -1,15 +1,5 @@
 # ninja log v5
-4	1994	7545019903727738	CMakeFiles/Assignment1FileManagement.dir/main.cpp.obj	193b717c5e7c3d07
-1996	2200	7545019905755684	Assignment1FileManagement.exe	64ab472e71f188c6
-7	1742	7545028538027598	CMakeFiles/Assignment1FileManagement.dir/main.cpp.obj	193b717c5e7c3d07
-1742	1926	7545028539845479	Assignment1FileManagement.exe	64ab472e71f188c6
-6	1987	7545029778032069	CMakeFiles/Assignment1FileManagement.dir/main.cpp.obj	193b717c5e7c3d07
-1988	2202	7545029780136506	Assignment1FileManagement.exe	64ab472e71f188c6
-15	3040	7547069078301239	CMakeFiles/Assignment1FileManagement.dir/main.cpp.obj	193b717c5e7c3d07
-3040	3590	7547069083762222	Assignment1FileManagement.exe	64ab472e71f188c6
-16	2421	7547070327233386	CMakeFiles/Assignment1FileManagement.dir/main.cpp.obj	193b717c5e7c3d07
-2423	2704	7547070330072211	Assignment1FileManagement.exe	64ab472e71f188c6
-8	2646	7548246122500173	CMakeFiles/Assignment1FileManagement.dir/main.cpp.obj	193b717c5e7c3d07
-2648	3540	7548246131294750	Assignment1FileManagement.exe	64ab472e71f188c6
-10	7349	7548247487270329	CMakeFiles/Assignment1FileManagement.dir/main.cpp.obj	193b717c5e7c3d07
-7350	8014	7548247493847688	Assignment1FileManagement.exe	64ab472e71f188c6
+9	3015	7548742838616969	CMakeFiles/Assignment1FileManagement.dir/main.cpp.obj	193b717c5e7c3d07
+3016	3649	7548742844967280	Assignment1FileManagement.exe	64ab472e71f188c6
+6	2540	7548749859351819	CMakeFiles/Assignment1FileManagement.dir/main.cpp.obj	193b717c5e7c3d07
+2540	2915	7548749863052791	Assignment1FileManagement.exe	64ab472e71f188c6
