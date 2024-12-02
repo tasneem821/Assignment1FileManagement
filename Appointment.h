@@ -71,7 +71,51 @@ public:
              << "Appointment Date: " << appointmentDate << ", "
              << "Doctor ID: " << doctorID << endl;
     }
+    void updateAppointmentDate(const string&fileName, const string&AppointId, const char *AppointDate);
+
 };
+void Appointment::updateAppointmentDate(const std::string &fileName, const std::string &AppointId,
+                                        const char *AppointDate){
+    fstream file(fileName,ios::in|ios::out);
+    if(!file.is_open()){
+        cerr<<"Error canot open file "+fileName<<"\n";
+
+    }
+    string line;
+    bool found = false;
+    vector<string>lines;
+    while(getline(file,line)){
+        stringstream ss(line);
+        string lenght,appid,date,doctorid;
+        getline(ss,lenght,'|');
+        getline(ss,appid,'|');
+        getline(ss,date,'|');
+
+        getline(ss,doctorid);
+        if(appid==AppointId){
+            found = true;
+            stringstream  record;
+            string updatedrecord = appid +"|"+AppointDate+"|"+doctorid;
+            int updatedlenght = updatedrecord.length();
+            stringstream updatedfile;
+            updatedfile<<updatedlenght<<"|"<<updatedrecord;
+            line =  updatedfile.str();
+
+        }
+
+        lines.push_back(line);
+    }
+    file.close();
+    ofstream outFile(fileName,ios::trunc);
+    for(const auto &line:lines){
+        outFile<<line<<"\n";
+    }
+
+    outFile.close();
+    cout << "Appointment record with ID " << AppointId << " updated successfully!" << endl;
+
+
+}
 void Appointment::insert(const std::string &fileName) {
     stringstream record;
     record<<appointmentID<<"|"<<appointmentDate<<"|"<<doctorID;
