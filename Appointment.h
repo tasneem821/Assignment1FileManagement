@@ -72,6 +72,37 @@ public:
              << "Doctor ID: " << doctorID << endl;
     }
     void updateAppointmentDate(const string&fileName, const string&AppointId, const char *AppointDate);
+    bool searchByAppointmentID(const string &fileName, const string &appointmentId) {
+        ifstream file(fileName);
+        if (!file.is_open()) {
+            cerr << "Error: Could not open file " << fileName << endl;
+            return false;
+        }
+
+        string line;
+        while (getline(file, line)) {
+            stringstream ss(line);
+            string length, appid, date, doctorid;
+            getline(ss, length, '|');
+            getline(ss, appid, '|');
+            getline(ss, date, '|');
+            getline(ss, doctorid);
+
+            if (appid == appointmentId) {
+                // Print the appointment details if found
+                cout << "Appointment Found!" << endl;
+                cout << "Appointment ID: " << appid << endl;
+                cout << "Appointment Date: " << date << endl;
+                cout << "Doctor ID: " << doctorid << endl;
+                file.close();
+                return true;
+            }
+        }
+
+        file.close();
+        cout << "Appointment ID " << appointmentId << " not found!" << endl;
+        return false;
+    }
 
 };
 void Appointment::updateAppointmentDate(const std::string &fileName, const std::string &AppointId,
@@ -167,7 +198,10 @@ void Appointment::deleteRecord(const std::string &fileName, const std::string &a
     }
 
     for (const auto &line : lines) {
+        if(line[0]!='*'){
+
         outFile << line << endl;
+        }
     }
 
     outFile.close();
