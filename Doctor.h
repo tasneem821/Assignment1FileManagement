@@ -48,6 +48,49 @@ public:
     void deleteRecord(const string&fileName , const string& Doctorid);
 void updateDoctorName(const string&fileName, const string&doctorId, const char *doctorName);
     void updateDoctorAddress(const string&fileName,const string&doctorId,const string&doctorAddress);
+    bool searchByDoctorID(const string& fileName, const string& doctorId) {
+        ifstream file(fileName);
+        if (!file.is_open()) {
+            cerr << "Error: Could not open file " << fileName << endl;
+            return false;
+        }
+
+        // Store all doctor records in a vector
+        vector<pair<string, pair<string, string>>> records; // ID, (Name, Address)
+        string line;
+        while (getline(file, line)) {
+            stringstream ss(line);
+            string length, doctorid, name, address;
+            getline(ss, length, '|');
+            getline(ss, doctorid, '|');
+            getline(ss, name, '|');
+            getline(ss, address);
+            records.push_back(make_pair(doctorid, make_pair(name, address)));
+        }
+
+        file.close();
+
+        // Sort records by DoctorID (important for binary search)
+        sort(records.begin(), records.end());
+
+        // Binary search for the doctor by ID
+        auto it = lower_bound(records.begin(), records.end(), make_pair(doctorId, make_pair("", "")),
+                              [](const pair<string, pair<string, string>>& a, const pair<string, pair<string, string>>& b) {
+                                  return a.first < b.first;
+                              });
+
+        if (it != records.end() && it->first == doctorId) {
+            // Print doctor information
+            cout << "Doctor Found!" << endl;
+            cout << "Doctor ID: " << it->first << endl;
+            cout << "Doctor Name: " << it->second.first << endl;
+            cout << "Doctor Address: " << it->second.second << endl;
+            return true;
+        }
+
+        cout << "Doctor ID " << doctorId << " not found!" << endl;
+        return false;
+    }
 
 };
 //insert in doctor data file
@@ -82,7 +125,10 @@ void Doctor::deleteRecord(const std::string &fileName, const std::string &Doctor
             line = '*'+line;
             availlist.push_back(pos);
         }
-        lines.push_back(line);
+
+            lines.push_back(line);
+
+
     }
 
     if (!found) {
@@ -100,7 +146,10 @@ void Doctor::deleteRecord(const std::string &fileName, const std::string &Doctor
     }
 
     for (const auto &line : lines) {
+        if(line[0]!='*'){
+
         outFile << line << endl;
+        }
     }
 
     outFile.close();
