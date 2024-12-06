@@ -1,6 +1,9 @@
-#ifndef ASSIGNMENT1_SECONDARYIDXDRNAME_H
-#define ASSIGNMENT1_SECONDARYIDXDRNAME_H
+//
+// Created by tasnim on 12/6/2024.
+//
 
+#ifndef ASSIGNMENT1FILEMANAGEMENT_SECONDARYIDXDRNAME_H
+#define ASSIGNMENT1FILEMANAGEMENT_SECONDARYIDXDRNAME_H
 #include <iostream>
 #include <vector>
 #include <string>
@@ -12,7 +15,9 @@ class SecondaryIdxDrName {
     vector<pair<string, string>> secondaryIdx;
 public:
     // insert doctor name in the index file
-    void addDoctor(Doctor doctor) {
+    void addDoctorSecIdx(const string&filenme,Doctor doctor) {
+        ofstream doctorfile(filenme,ios::app);
+
         secondaryIdx.emplace_back(doctor.DoctorName, doctor.DoctorID);
         sort(secondaryIdx.begin(), secondaryIdx.end());
     }
@@ -29,14 +34,31 @@ public:
 
 
     // update doctor name
-    void updateDoctorName(Doctor doctor, string& newName) {
+    void updateDoctorName(string ID, string& newName) {
         for (auto& entry : secondaryIdx) {
-            if (entry.second == doctor.DoctorID) {
+            if (entry.second == ID) {
                 entry.first = newName;
                 break;
             }
         }
         sort(secondaryIdx.begin(), secondaryIdx.end());
+
+
+    }
+void print(const string& filename){
+    ofstream outFile(filename, ios::out);  // Open file for writing (overwrite mode)
+
+    if (!outFile) {
+        cerr << "Failed to open file: " << filename << endl;
+        return;  // If the file fails to open, we exit
+    }
+
+    // Iterate over the vector and write each pair to the file
+    for (const auto& entry : secondaryIdx) {
+        outFile << entry.second << " " << entry.first << "\n";  // ID and Name
+    }
+
+    outFile.close();  // Close the file after writing
     }
 
 
@@ -52,4 +74,4 @@ public:
 
 };
 
-#endif //ASSIGNMENT1_SECONDARYIDXDRNAME_H
+#endif //ASSIGNMENT1FILEMANAGEMENT_SECONDARYIDXDRNAME_H
