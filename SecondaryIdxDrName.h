@@ -47,15 +47,19 @@ public:
 
 
     // update doctor name
-    void updateDoctorName(const string& doctorID, const string& newName) {
-        for (auto& entry : secondaryIdx) {
-            if (entry.second == doctorID) {
-                entry.first = newName;
-                break;
+    void updateDoctorName(string& doctorID, const string& newName) {
+        for (auto it = secondaryIdx.begin(); it != secondaryIdx.end(); ++it) {
+            if (it->second == doctorID) {
+                // Update the doctor's name
+                secondaryIdx[newName] = doctorID; // Insert the new entry
+                secondaryIdx.erase(it);          // Erase the old entry
+
+                rewriteIndexFile();
+                cout << "Doctor name updated successfully for ID: " << doctorID << endl;
+                return;
             }
         }
-        rewriteIndexFile();
-        cout << "Doctor name updated successfully for ID: " << doctorID << endl;
+        cout << "Error: Doctor with ID " << doctorID << " not found." << endl;
     }
 
     void deleteSecondaryIndex(const string& doctorID) {
