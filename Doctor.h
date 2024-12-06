@@ -307,38 +307,6 @@ void Doctor::updateDoctorAddress(const std::string &fileName, const std::string 
 
     outFile.close();
     cout << "Doctor record with ID " << doctorId << " updated successfully!" << endl;
-
-
-}
-
-
-
-
-
-
-
-
-
-
-class SecondaryIdxDoctorName {
-    vector<pair<string , string>> secondaryIdx;
-public:
-
-    // insert doctor name in the index file
-    void addDoctor(Doctor doctor) {
-        secondaryIdx.emplace_back(doctor.DoctorName, doctor.DoctorID);
-
-        sort(secondaryIdx.begin(), secondaryIdx.end());
-    }
-
-    // search for doctor id with the doctor name
-    vector<string> searchByDoctorName(Doctor doctor) {
-        vector<string> result;
-        for (const auto& pair : secondaryIdx)
-            if (pair.first == doctor.DoctorName)
-                result.push_back(pair.second);
-        return result;
-    }
 };
 
 #endif //ASSIGNMENT_DOCTOR_H
