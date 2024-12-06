@@ -14,7 +14,7 @@ using namespace std;
 class SecondaryIdxDrName {
     map<string, string> secondaryIdx;
     void rewriteIndexFile() {
-        ofstream sIndexFile("secondaryidxName", ios::trunc);
+        ofstream sIndexFile("secondaryidxName", ios::app);
         if (!sIndexFile.is_open()) {
             cerr << "Error: Could not open index file for rewriting!" << endl;
             return;
