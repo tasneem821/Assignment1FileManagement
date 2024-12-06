@@ -18,6 +18,9 @@ private:
     map<string, streampos> primaryIndex;     // Maps Doctor ID -> File position
     vector<streampos> availList;             // Stores positions of deleted records
 
+    // Internal helper to rewrite the index file
+    void rewriteIndexFile();
+
 public:
     DoctorPrimaryIndex(const string& indexFile) : indexFilename(indexFile) {}
 
@@ -39,34 +42,14 @@ public:
     // Display the primary index and AVAIL LIST
     void displayIndexes() const;
 };
-
-// Build the primary index from the index file
-void DoctorPrimaryIndex::buildPrimaryIndex() {
-    primaryIndex.clear();
-    availList.clear();
-
-    ifstream indexFile(indexFilename);
-    if (!indexFile.is_open()) {
-        cerr << "Error: Could not open index file " << indexFilename << endl;
-        return;
-    }
-
-    string doctorID;
-    streamoff offset; // Intermediate type for reading positions
-
-    while (indexFile >> doctorID >> offset) {
-        primaryIndex[doctorID] = static_cast<std::streampos>(offset);
-    }
-    indexFile.close();
-
-    cout << "Primary index built successfully!" << endl;
-}
-
-// Add a doctor to the primary index
 void DoctorPrimaryIndex::addDoctorToIndex(const string& doctorID, streampos position) {
     if (primaryIndex.find(doctorID) != primaryIndex.end()) {
         cerr << "Error: Doctor ID " << doctorID << " already exists in the index!" << endl;
         return;
+    }
+    if (!availList.empty()) {
+        position = availList.back();
+        availList.pop_back();
     }
 
     ofstream primaryIndexFile(indexFilename, ios::app);
@@ -76,39 +59,44 @@ void DoctorPrimaryIndex::addDoctorToIndex(const string& doctorID, streampos posi
     }
 
     primaryIndexFile << doctorID << " " << static_cast<streamoff>(position) << endl;
-    primaryIndex[doctorID] = position;
     primaryIndexFile.close();
 
     cout << "Doctor ID " << doctorID << " added to the index at position " << position << "." << endl;
 }
 
-// Delete a doctor from the primary index
-void DoctorPrimaryIndex::deleteDoctorFromIndex(const string& doctorID) {
-    auto it = primaryIndex.find(doctorID);
-    if (it == primaryIndex.end()) {
-        cerr << "Error: Doctor ID " << doctorID << " not found in the index!" << endl;
+void DoctorPrimaryIndex::deleteDoctorFromIndex(const std::string &doctorID)  {
+    fstream pIdxFile("doctor_primary_index.txt", ios::in | ios::out);
+    if (!pIdxFile.is_open()) {
+        cerr << "Error: Could not open primary index file doctor_primary_index.txt" << endl;
         return;
     }
 
-    availList.push_back(it->second); // Add position to AVAIL LIST
-    primaryIndex.erase(it);          // Remove entry from the index
+    string line;
+    vector<string> pIdxLines;
+    while (getline(pIdxFile, line)) {
+        size_t spacePos = line.find(' ');
+        string indexId = line.substr(0, spacePos);
 
-    cout << "Doctor ID " << doctorID << " deleted from the index." << endl;
+        if (indexId != doctorID) {
+            pIdxLines.push_back(line);
+        }
+    }
 
-    // Rewrite the index file
-    ofstream indexFile(indexFilename, ios::trunc);
-    if (!indexFile.is_open()) {
-        cerr << "Error: Could not open index file for rewriting!" << endl;
+    pIdxFile.close();
+    ofstream outPIdxFile("doctor_primary_index.txt", ios::trunc);
+    if (!outPIdxFile.is_open()) {
+        cerr << "Error: Could not open primary index file doctor_primary_index.txt for writing!" << endl;
         return;
     }
 
-    for (const auto& entry : primaryIndex) {
-        indexFile << entry.first << " " << static_cast<std::streamoff>(entry.second) << endl;
+    for (const auto &line : pIdxLines) {
+        outPIdxFile << line << endl;
     }
-    indexFile.close();
+
+    outPIdxFile.close();
+    cout << "Primary index updated successfully!" << endl;
 }
 
-// Update a doctor's position in the primary index
 void DoctorPrimaryIndex::updateDoctorInIndex(const string& doctorID, streampos newPosition) {
     auto it = primaryIndex.find(doctorID);
     if (it == primaryIndex.end()) {
@@ -116,36 +104,21 @@ void DoctorPrimaryIndex::updateDoctorInIndex(const string& doctorID, streampos n
         return;
     }
 
-    it->second = newPosition; // Update the position in memory
-
-    // Rewrite the index file
-    ofstream indexFile(indexFilename, ios::trunc);
-    if (!indexFile.is_open()) {
-        cerr << "Error: Could not open index file for updating!" << endl;
-        return;
-    }
-
-    for (const auto& entry : primaryIndex) {
-        indexFile << entry.first << " " << static_cast<std::streamoff>(entry.second) << endl;
-    }
-    indexFile.close();
-
+    it->second = newPosition;
     cout << "Doctor ID " << doctorID << " updated to position " << newPosition << "." << endl;
+    rewriteIndexFile();
 }
 
-// Search for a doctor in the primary index
 streampos DoctorPrimaryIndex::searchDoctorInIndex(const string& doctorID) const {
     auto it = primaryIndex.find(doctorID);
     if (it == primaryIndex.end()) {
         cerr << "Error: Doctor ID " << doctorID << " not found in the index!" << endl;
-        return -1; // Indicate that the doctor is not found
     }
 
     cout << "Doctor ID " << doctorID << " found at position " << it->second << "." << endl;
     return it->second;
 }
 
-// Display the primary index and AVAIL LIST
 void DoctorPrimaryIndex::displayIndexes() const {
     cout << "Primary Index:" << endl;
     for (const auto& entry : primaryIndex) {
@@ -156,6 +129,19 @@ void DoctorPrimaryIndex::displayIndexes() const {
     for (const auto& pos : availList) {
         cout << pos << endl;
     }
+}
+
+void DoctorPrimaryIndex::rewriteIndexFile() {
+    ofstream indexFile(indexFilename, ios::trunc);
+    if (!indexFile.is_open()) {
+        cerr << "Error: Could not open index file for rewriting!" << endl;
+        return;
+    }
+
+    for (const auto& entry : primaryIndex) {
+        indexFile << entry.first << " " << static_cast<streamoff>(entry.second) << endl;
+    }
+    indexFile.close();
 }
 
 #endif // DOCTOR_PRIMARY_INDEX_H

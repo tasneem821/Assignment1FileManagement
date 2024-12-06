@@ -6,61 +6,10 @@
 #include "secondaryIdxDrName.h"
 #include "Doctor.h"
 #include "Appointment.h"
-#include "DoctorPrimaryIndex.h"
 
 using namespace std;
 
 int main() {
-//    fstream ssecondaryIndexFile;
-//    ssecondaryIndexFile.open("appointment_secondary_index.txt");
-//    // Create a secondary index instance
-//    string secondaryIndexFile = "appointment_secondary_index.txt";
-//    AppointmentSecondaryIndex secondaryIndex(secondaryIndexFile);
-//
-//    // Rebuild the index from the file (if it exists)
-//    secondaryIndex.buildSecondaryIndex();
-//
-//    // Test adding appointments
-//    secondaryIndex.addAppointmentToIndex("D001", "A001");
-//    secondaryIndex.addAppointmentToIndex("D001", "A002");
-//    secondaryIndex.addAppointmentToIndex("D002", "A003");
-//    secondaryIndex.addAppointmentToIndex("D003", "A004");
-//
-//        // Display the index
-//        cout << "\nIndex after adding appointments:" << endl;
-//        secondaryIndex.displayIndexes();
-//
-//        // Test deleting an appointment
-//        secondaryIndex.deleteAppointmentFromIndex("D001", "A001");
-//        cout << "\nIndex after deleting A001 for Doctor D001:" << endl;
-//        secondaryIndex.displayIndexes();
-//
-//        // Test updating a doctor's ID for an appointment
-//        secondaryIndex.updateDoctorIDForAppointment("A002", "D001", "D004");
-//        cout << "\nIndex after updating doctor ID for A002 from D001 to D004:" << endl;
-//        secondaryIndex.displayIndexes();
-//
-//        // Test searching for appointments for a doctor
-//        cout << "\nAppointments for Doctor D004:" << endl;
-//        vector<string> appointments = secondaryIndex.binarySearchAppointments("D004");
-//        for (const string &appointmentID: appointments) {
-//            cout << appointmentID << " ";
-//        }
-//        cout << endl;
-//
-//        // Simulate primary index for testing cross-search
-//        DoctorPrimaryIndex primaryIndex("doctor_primary_index.txt");
-//        primaryIndex.addDoctorToIndex("D001", 0);
-//        primaryIndex.addDoctorToIndex("D002", 100);
-//        primaryIndex.addDoctorToIndex("D003", 200);
-//        primaryIndex.addDoctorToIndex("D004", 300);
-//
-//        cout << "\nSearching primary positions for appointments of Doctor D004:" << endl;
-//        vector<streampos> positions = secondaryIndex.searchAppointmentsByDoctor("D004", primaryIndex);
-//        for (streampos pos: positions) {
-//            cout << pos << " ";
-//        }
-//        cout << endl;
     int choice;
     while (true) {
         cout << "what do you want to do :\n"
@@ -78,36 +27,40 @@ int main() {
         cin>>choice;
         Doctor d1;
         SecondaryIdxDrName dn1;
+        DoctorPrimaryIndex dp1("doctor_primary_index.txt");
         Appointment ap1;
-            AppointmentPrimaryIndex apindx("AppointmentPrimaryIndex.txt");
-                DoctorPrimaryIndex dp1("primaryIndex.txt");
-            AppointmentSecondaryIndex apsecidx("AppointmentSecondaryIndex");
+        AppointmentPrimaryIndex apindx("AppointmentPrimaryIndex.txt");
+        AppointmentSecondaryIndex apsecidx("AppointmentSecondaryIndex");
 
-        if(choice==1){
-                string drId;
-                string drName;
-                string drAdress;
-                cout<<"please enter the id \n";
-                cin>>drId;
-                cin.ignore();
-                cout<<"please enter the name \n";
-                getline(cin,drName);
+        if (choice == 1) {
+            string drId, drName, drAddress;
+            cout << "Please enter the ID:\n";
+            cin >> drId;
+
+            if (d1.searchByDoctorID("Doctors.txt", drId)) {
+                cout << "Error: Doctor ID already exists!\n";
+                continue;
+            }
+            cout << "Please enter the name:\n";
             cin.ignore();
+            getline(cin, drName);
 
-            cout<<"please enter the address \n";
-            getline(cin,drAdress);
-                d1.setDoctorID(drId.c_str());
-                d1.setDoctorName(drName.c_str());
-                d1.setDoctorAddress(drAdress.c_str());
-                d1.insert("doctors.txt");
-            ofstream doctorFile("doctors.txt", ios::app);
-
-            streampos positon = doctorFile.tellp();
-            dp1.addDoctorToIndex(drId,positon);
-            dn1.addDoctorSecIdx("secondaryidxName.txt",d1);
-
-//cout<<d1.getDoctorId()<<" "<<d1.getAddress()<<" "<<d1.getDoctorName();
-
+            cout << "Please enter the address:\n";
+            getline(cin, drAddress);
+            fstream doctorFile("Doctors.txt", ios::app);
+            if (!doctorFile.is_open()) {
+                cerr << "Error: Could not open doctors.txt\n";
+                continue;
+            }
+            streampos position = doctorFile.tellp();
+            d1.setDoctorID(drId.c_str());
+            d1.setDoctorName(drName.c_str());
+            d1.setDoctorAddress(drAddress.c_str());
+            d1.insert("Doctors.txt");
+            doctorFile.close();
+            dp1.addDoctorToIndex(drId, position);
+            dn1.addDoctorSecIdx("secondaryidxName.txt", d1);
+            cout << "Doctor added successfully.\n";
         }
         else if(choice==2){
             string apId;
@@ -135,17 +88,14 @@ int main() {
         }
         else if(choice==3){
 
-                cout<<"please enter dr  id \n";
-                string drId;
-              cin>>drId;
-              cin.ignore();
-                cout<<"please enter the dr name new\n";
-                string newdrname;
-                getline(cin,newdrname);
-
-
-
-            d1.updateDoctorName("doctors.txt",drId,newdrname.c_str());
+            cout<<"please enter dr  id \n";
+            string drId;
+            cin>>drId;
+             cin.ignore();
+            cout<<"please enter the dr name new\n";
+            string newdrname;
+            getline(cin,newdrname);
+            d1.updateDoctorName("Doctors.txt",drId,newdrname.c_str());
             dn1.updateDoctorName(drId,newdrname);
             dn1.print("secondaryidxName.txt");
 
@@ -162,15 +112,15 @@ int main() {
 
 
 
-            d1.updateDoctorName("Appointment.txt",apId,newdate.c_str());
+            ap1.updateAppointmentDate("Appointment.txt",apId,newdate.c_str());
         }
         else if(choice==5){
             cout<<"please enter the delete id \n";
             string x;
             cin>>x;
-            d1.deleteRecord("doctors.txt",x);
+            d1.deleteFromDoctorFile(x);
             dp1.deleteDoctorFromIndex(x);
-            dn1.deleteDoctor(x);
+            dn1.deleteSecondaryIndex(x);
         }
         else if(choice==6){
             cout<<"please enter appointment id\n";
@@ -188,7 +138,7 @@ int main() {
             string drId;
             cout<<"please enter dr id\n";
             cin>>drId;
-            d1.searchByDoctorID("doctors.txt",drId);
+            d1.searchByDoctorID("Doctors.txt",drId);
             dp1.searchDoctorInIndex(drId);
         }
         else if(choice==8){

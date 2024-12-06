@@ -16,10 +16,10 @@ using namespace std;
 
 class Doctor{
 public:
-    char DoctorID[15];
-    char DoctorName[30];
-    char Address[30];
-    vector<streampos>availlist;
+    char DoctorID[15]{};
+    char DoctorName[30]{};
+    char Address[30]{};
+    vector<streampos>availList;
 public:
     Doctor(){
 
@@ -45,8 +45,8 @@ public:
     }
 
     void insert(const string &fileName);
-    void deleteRecord(const string&fileName , const string& Doctorid);
-void updateDoctorName(const string&fileName, const string&doctorId, const char *doctorName);
+    void deleteRecord(const string&fileName , const string& DoctorId);
+    void updateDoctorName(const string&fileName, const string&doctorId, const char *doctorName);
     void updateDoctorAddress(const string&fileName,const string&doctorId,const string&doctorAddress);
     bool searchByDoctorID(const string& fileName, const string& doctorId) {
         ifstream file(fileName);
@@ -59,6 +59,9 @@ void updateDoctorName(const string&fileName, const string&doctorId, const char *
         vector<pair<string, pair<string, string>>> records; // ID, (Name, Address)
         string line;
         while (getline(file, line)) {
+            if (line[0] == '*') {
+                continue;
+            }
             stringstream ss(line);
             string length, doctorid, name, address;
             getline(ss, length, '|');
@@ -92,24 +95,74 @@ void updateDoctorName(const string&fileName, const string&doctorId, const char *
         return false;
     }
 
+    void deleteRecord(const string &DoctorId);
+    void deleteFromDoctorFile(const string &DoctorId);
 };
 //insert in doctor data file
 void Doctor::insert(const std::string &fileName) {
     stringstream record;
-    record<<DoctorID<<"|"<<DoctorName<<"|"<<Address;
-    string finialrecord = record.str();
-    int recordlenght = finialrecord.length();
-    ofstream file;
-    file.open(fileName,ios::app);
-    file<<recordlenght<<"|"<<finialrecord<<"\n";
-    file.close();
-}
-//delete in doctor data file
-void Doctor::deleteRecord(const std::string &fileName, const std::string &Doctorid) {
-    fstream file(fileName, ios::in | ios::out);
+    record << DoctorID << "|" << DoctorName << "|" << Address;
+    string finalRecord = record.str();
+    int recordLength = finalRecord.length();
 
+    fstream file(fileName, ios::in | ios::out);
     if (!file.is_open()) {
         cerr << "Error: Could not open file " << fileName << endl;
+        return;
+    }
+
+    string line;
+    bool inserted = false;
+
+    while (getline(file, line)) {
+        cout << "Reading line: " << line << endl;
+
+        if (line[0] == '*') {  // Found a deleted record
+            streampos pos = file.tellg();  // Get the current position after reading the line
+            pos -= (line.length() + 1);  // Adjust to the start of the line
+            file.seekp(pos);
+
+            string replacement = to_string(recordLength) + "|" + finalRecord;
+            file << replacement;
+
+            // Pad remaining space if the replacement record is shorter
+            int remainingSpace = line.length() - replacement.length();
+            if (remainingSpace > 0) {
+                file << string(remainingSpace, ' ');
+            }
+
+            // Remove the position from availList
+            if (!availList.empty()) {
+                availList.erase(availList.begin());
+            }
+
+            inserted = true;
+            break;
+        }
+    }
+
+    file.close();
+
+    // Append the record at the end if no deleted space was found
+    if (!inserted) {
+        ofstream outFile(fileName, ios::app);
+        if (!outFile.is_open()) {
+            cerr << "Error: Could not open file " << fileName << " for appending!" << endl;
+            return;
+        }
+        outFile << to_string(recordLength) + "|" + finalRecord << endl;
+        outFile.close();
+    }
+
+    cout << "Doctor record inserted successfully!" << endl;
+}
+
+
+
+void Doctor::deleteFromDoctorFile(const std::string &DoctorId) {
+    fstream doctorFile("Doctors.txt", ios::in | ios::out);
+    if (!doctorFile.is_open()) {
+        cerr << "Error: Could not open doctor file Doctors.txt" << endl;
         return;
     }
 
@@ -117,44 +170,52 @@ void Doctor::deleteRecord(const std::string &fileName, const std::string &Doctor
     bool found = false;
     streampos pos;
     vector<string> lines;
+    vector<streampos> deletedPositions;
 
-    while (getline(file, line)) {
-        pos = file.tellg();
-        if (line.substr(3, 4) == Doctorid) {
+    while (getline(doctorFile, line)) {
+        pos = doctorFile.tellg();
+        pos -= line.length() + 1;
+        size_t firstPipe = line.find('|');
+        size_t secondPipe = line.find('|', firstPipe + 1);
+        string id = line.substr(firstPipe + 1, secondPipe - firstPipe - 1);
+
+        if (id == DoctorId) {
             found = true;
-            line = '*'+line;
-            availlist.push_back(pos);
+            line = '*' + line;
+            deletedPositions.push_back(pos);
         }
 
-            lines.push_back(line);
-
-
+        lines.push_back(line);
     }
 
     if (!found) {
-        cerr << "Error: Doctor ID " << Doctorid << " not found!" << endl;
-        file.close();
+        cerr << "Error: Doctor ID " << DoctorId << " not found!" << endl;
+        doctorFile.close();
         return;
     }
 
-    file.close();
-    ofstream outFile(fileName, ios::trunc);  // Open file in truncate mode (clears the file)
+    doctorFile.close();
 
-    if (!outFile.is_open()) {
-        cerr << "Error: Could not open file " << fileName << " for writing!" << endl;
+    ofstream outDoctorFile("Doctors.txt", ios::trunc);
+    if (!outDoctorFile.is_open()) {
+        cerr << "Error: Could not open doctor file Doctors.txt for writing!" << endl;
         return;
     }
 
     for (const auto &line : lines) {
-        if(line[0]!='*'){
-
-        outFile << line << endl;
-        }
+        outDoctorFile << line << endl;
     }
 
-    outFile.close();
-    cout << "Doctor record with ID " << Doctorid << " deleted successfully!" << endl;
+    outDoctorFile.close();
+
+    for (const auto &pos : deletedPositions) {
+        availList.push_back(pos);
+    }
+
+    cout << "Doctor record with ID " << DoctorId << " deleted successfully!" << endl;
 }
+
+
 const char *Doctor::getDoctorId() const {
     return DoctorID;
 }
@@ -278,27 +339,6 @@ public:
                 result.push_back(pair.second);
         return result;
     }
-
-    // delete a doctor from the index file
-//    void deleteEntry(Doctor doctor) {
-//        auto it = remove_if(secondaryIdx.begin(), secondaryIdx.end(),
-//                            [&](const pair<string, string>& entry) {
-//                                return entry.first == doctorName && entry.second == doctorID;
-//                            });
-//        vector<string> result;
-//        for (const auto& pair : secondaryIdx) {
-//            if (pair.first == doctor.DoctorName)
-//                continue;
-//            else
-//                result.push_back(doctor.DoctorName);
-//        }
-//        for (const auto& pair : secondaryIdx) {
-//            if (pair != secondaryIdx.end()) {
-//                secondaryIdx.erase(it, secondaryIdx.end());
-//            }
-//        }
-//
-//    }
 };
 
 #endif //ASSIGNMENT_DOCTOR_H
