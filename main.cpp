@@ -18,8 +18,8 @@ int main() {
                 "2- Add New Appointment\n"
                 "3- Update Doctor Name\n"
                 "4- Update Appointment Date\n"
-                "5- Delete Appointment\n"
-                "6- Delete Doctor\n"
+                "5- Delete Doctor\n"
+                "6- Delete Appointment\n"
                 "7- Print Doctor Info\n"
                 "8- Print Appointment Info\n"
                 "9- Write Query\n"
@@ -47,6 +47,7 @@ int main() {
 
             cout << "Please enter the address:\n";
             getline(cin, drAddress);
+
             fstream doctorFile("Doctors.txt", ios::app);
             if (!doctorFile.is_open()) {
                 cerr << "Error: Could not open doctors.txt\n";
@@ -59,7 +60,7 @@ int main() {
             d1.insert("Doctors.txt");
             doctorFile.close();
             dp1.addDoctorToIndex(drId, position);
-            dn1.addDoctorSecIdx("secondaryidxName.txt", d1);
+            dn1.addDoctorSecIdx("secondaryidxName", d1);
             cout << "Doctor added successfully.\n";
         }
         else if(choice==2){
@@ -91,13 +92,13 @@ int main() {
             cout<<"please enter dr  id \n";
             string drId;
             cin>>drId;
-             cin.ignore();
+            cin.ignore();
             cout<<"please enter the dr name new\n";
             string newdrname;
             getline(cin,newdrname);
             d1.updateDoctorName("Doctors.txt",drId,newdrname.c_str());
-            dn1.updateDoctorName(drId,newdrname);
-            dn1.print("secondaryidxName.txt");
+            dn1.updateDoctorName("secondaryidxName", drId, newdrname);
+//            dn1.print("secondaryidxName.txt");
 
 
         }
@@ -120,7 +121,7 @@ int main() {
             cin>>x;
             d1.deleteFromDoctorFile(x);
             dp1.deleteDoctorFromIndex(x);
-            dn1.deleteSecondaryIndex(x);
+            dn1.deleteSecondaryIndex("secondaryidxName", x);
         }
         else if(choice==6){
             cout<<"please enter appointment id\n";
@@ -145,7 +146,7 @@ int main() {
             cout<<"please enter appointment id\n";
             string apId;
             cin>>apId;
-ap1.searchByAppointmentID("Appointment.txt",apId);
+            ap1.searchByAppointmentID("Appointment.txt",apId);
 
         }
         else if(choice==9){}
