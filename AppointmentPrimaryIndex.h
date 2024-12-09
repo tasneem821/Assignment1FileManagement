@@ -32,7 +32,7 @@ public:
     void updateAppointmentInIndex(const string& appointmentID, streampos newPosition);
 
     // Search for an appointment in the primary index
-    streampos searchAppointmentInIndex(const string& appointmentID) const;
+    const initializer_list<fpos<int>> searchAppointmentInIndex(const string& appointmentID) const;
 
     // Display the primary index and AVAIL LIST
     void displayIndexes() const;
@@ -134,15 +134,15 @@ void AppointmentPrimaryIndex::updateAppointmentInIndex(const string& appointment
 }
 
 // Search for an appointment in the primary index
-streampos AppointmentPrimaryIndex::searchAppointmentInIndex(const string& appointmentID) const {
+const initializer_list<fpos<int>> AppointmentPrimaryIndex::searchAppointmentInIndex(const string& appointmentID) const {
     auto it = primaryIndex.find(appointmentID);
     if (it == primaryIndex.end()) {
         cerr << "Error: Appointment ID " << appointmentID << " not found in the index!" << endl;
-        return -1;
+
     }
 
     cout << "Appointment ID " << appointmentID << " found at position " << it->second << "." << endl;
-    return it->second;
+    //return it->second;
 }
 
 // Display the primary index and AVAIL LIST

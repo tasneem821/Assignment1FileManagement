@@ -5,10 +5,11 @@ set(CMAKE_CXX_STANDARD 11)
 
 include_directories(.)
 
-add_executable(Assignment1FileManagement
+add_executable(
         Appointment.h
         Doctor.h
         DoctorPrimaryIndex.h
         main.cpp
         SecondaryIndexForAppointment.h
+        AppointmentPrimaryIndex.h
 )

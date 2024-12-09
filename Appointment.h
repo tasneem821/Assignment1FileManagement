@@ -46,6 +46,8 @@ public:
     const char* getAppointmentDate() const { return appointmentDate; }
     const char* getDoctorID() const { return doctorID; }
 
+
+
     // Static function to parse a record string into an Appointment object
     static Appointment parseRecord(const string& record) {
         Appointment appt;
@@ -205,6 +207,7 @@ void Appointment::deleteRecord(const std::string &fileName, const std::string &a
     }
 
     outFile.close();
-    cout << "Appointment record with ID " << appointmentid << " deleted successfully!" << endl;
-}
+    cout << "Appointment record with ID " << appointmentid << " deleted successfully!" << endl;}
+
+
 #endif //ASSIGNMENT_APPOINTMENT_H

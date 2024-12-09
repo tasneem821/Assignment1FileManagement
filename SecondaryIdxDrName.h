@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <string>
 #include <algorithm>
 #include "Doctor.h"
 using namespace std;
@@ -28,6 +29,7 @@ class SecondaryIdxDrName {
     }
 
 public:
+
     // insert doctor name in the index file
     void addDoctorSecIdx(const string& filename, Doctor doctor) {
         ifstream inFile(filename);
@@ -171,6 +173,15 @@ public:
 //        cout << "Doctor with ID " << doctorID << " deleted from the secondary index." << endl;
     }
 
-};
+    string getDoctorNameByID(const string& doctorID) {
+        for (const auto& pair : secondaryIdx) {
+            if (pair.second == doctorID) { // Match DoctorID
+                return pair.first;        // Return DoctorName
+            }
+        }
+        return "Doctor not found"; // If no match is found
+    }
+
+ };
 
 #endif //ASSIGNMENT1FILEMANAGEMENT_SECONDARYIDXDRNAME_H

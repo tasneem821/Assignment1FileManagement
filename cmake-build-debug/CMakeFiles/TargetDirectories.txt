@@ -1,3 +1,3 @@
-G:/COLLEGE MATERIALS/file management/Assignment1FileManagement/cmake-build-debug/CMakeFiles/Assignment1FileManagement.dir
-G:/COLLEGE MATERIALS/file management/Assignment1FileManagement/cmake-build-debug/CMakeFiles/edit_cache.dir
-G:/COLLEGE MATERIALS/file management/Assignment1FileManagement/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+C:/Users/mohamed sallam/Desktop/Assignment1FileManagement/cmake-build-debug/CMakeFiles/Appointment.h.dir
+C:/Users/mohamed sallam/Desktop/Assignment1FileManagement/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/mohamed sallam/Desktop/Assignment1FileManagement/cmake-build-debug/CMakeFiles/rebuild_cache.dir
